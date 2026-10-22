@@ -377,3 +377,21 @@ func TestInitDeclaresTheSystemComponent(t *testing.T) {
 		t.Fatalf("without an origin:\n%s", b)
 	}
 }
+
+// TestConstitutionRendersTheRepositoryOwn holds the renderer to the
+// repository's own docs/constitutions/design.md: the constitution every
+// program receives is the rendered one, and this corpus eats its own output
+// (srd043, GH-186).
+func TestConstitutionRendersTheRepositoryOwn(t *testing.T) {
+	rendered, err := RenderConstitution()
+	if err != nil {
+		t.Fatal(err)
+	}
+	own, err := os.ReadFile(filepath.Join("..", "..", "docs", "constitutions", "design.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(rendered) != string(own) {
+		t.Fatalf("the rendered constitution differs from docs/constitutions/design.md; regenerate the file or fix the template (lengths %d and %d)", len(rendered), len(own))
+	}
+}

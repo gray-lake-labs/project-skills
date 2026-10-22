@@ -104,7 +104,11 @@ func corpusFiles(level, dir string) (map[string][]byte, error) {
 		return nil, err
 	}
 	files[AgentsFile] = agents
-	files["docs/constitutions/design.md"] = scrummaster.Constitution
+	constitution, err := RenderConstitution()
+	if err != nil {
+		return nil, err
+	}
+	files["docs/constitutions/design.md"] = constitution
 	files["docs/corpus-charter.yaml"] = charter
 	files["docs/external-pins.yaml"] = []byte("# The parent release this corpus's format follows (srd043 R3.3).\npins:\n  " + parentRepository + ": " + release + "\n")
 	return files, nil
@@ -184,6 +188,10 @@ func requireRepository(dir string) error {
 // managed block differs has the block refreshed and the rest kept, and one
 // without a block has it appended after its text (srd043 R3.5). A dry run
 // writes nothing.
+// owned names the produced files tpm replaces when they differ: nobody
+// edits them in a program repository (GH-186).
+var owned = map[string]bool{"docs/constitutions/design.md": true}
+
 func write(dir string, files map[string][]byte, force, dryRun bool) ([]Result, error) {
 	names := make([]string, 0, len(files))
 	for n := range files {
@@ -203,6 +211,10 @@ func write(dir string, files map[string][]byte, force, dryRun bool) ([]Result, e
 			r.Action, r.Reason = "kept", "unchanged"
 		case force:
 			r.Action = "overwritten"
+		case owned[n]:
+			// A produced file is tpm's: a stale one is brought up to date,
+			// and what a person would edit lives elsewhere (GH-186).
+			r.Action, r.Reason = "refreshed", "produced from the declarations; edits belong upstream of it"
 		default:
 			r.Action, r.Reason = "kept", "edited; --force replaces it"
 			if merged, how, ok := refreshManaged(cur, files[n]); ok {

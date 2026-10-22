@@ -541,3 +541,54 @@ func TestDoctorRuntime(t *testing.T) {
 		t.Errorf("report with a runtime:\n%s", h)
 	}
 }
+
+// TestDoctorRefreshesAStaleConstitution is srd043 R4.2 for the produced
+// constitution: a program whose design.md an older tpm wrote is brought up
+// to date, once, and a dry run writes nothing (GH-186).
+func TestDoctorRefreshesAStaleConstitution(t *testing.T) {
+	dir := repo(t)
+	if _, err := Init(InitOptions{Dir: dir}); err != nil {
+		t.Fatal(err)
+	}
+	p := filepath.Join(dir, "docs", "constitutions", "design.md")
+	if err := os.WriteFile(p, []byte("---\nid: design\ntitle: Design\n---\n\nan older tpm's constitution\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	find := func(r DoctorResult) Result {
+		for _, f := range r.Files {
+			if f.Path == "docs/constitutions/design.md" {
+				return f
+			}
+		}
+		t.Fatal("doctor did not report the constitution")
+		return Result{}
+	}
+	dry, err := Doctor(DoctorOptions{Dir: dir, DryRun: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if f := find(dry); f.Action != "refreshed" {
+		t.Fatalf("dry run reports %q, want refreshed", f.Action)
+	}
+	if b, _ := os.ReadFile(p); !strings.Contains(string(b), "older tpm") {
+		t.Fatal("the dry run wrote the constitution")
+	}
+	run, err := Doctor(DoctorOptions{Dir: dir})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if f := find(run); f.Action != "refreshed" {
+		t.Fatalf("doctor reports %q, want refreshed", f.Action)
+	}
+	rendered, _ := RenderConstitution()
+	if b, _ := os.ReadFile(p); string(b) != string(rendered) {
+		t.Fatal("the refreshed constitution is not the rendered one")
+	}
+	again, err := Doctor(DoctorOptions{Dir: dir})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if f := find(again); f.Action != "kept" || f.Reason != "unchanged" {
+		t.Fatalf("second run reports %q %q, want kept unchanged", f.Action, f.Reason)
+	}
+}

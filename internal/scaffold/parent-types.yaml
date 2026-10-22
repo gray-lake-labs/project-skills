@@ -1,0 +1,116 @@
+# The parent release's declaration of each document type tpm's constitution
+# lists: location and required fields, projected from the pinned release's
+# design.yaml. A gate test holds this file equal to the release source in the
+# cache, so a pin move refreshes it or fails loudly (srd043, GH-186). The
+# spec-tool overlay (internal/spectool/overlay.yaml) wins for types it names.
+document_types:
+  vision:
+    location: docs/VISION.md
+    required_fields:
+    - id
+    - title
+    - executive_summary
+    - problem
+    - what_this_does
+    - why_we_build_this
+    - success_criteria
+    - not
+  architecture:
+    location: docs/ARCHITECTURE.md
+    required_fields:
+    - id
+    - title
+    - overview
+    - interfaces
+    - components
+    - design_decisions
+    - technology_choices
+    - project_structure
+    - implementation_status
+    - related_documents
+  specifications:
+    location: docs/SPECIFICATIONS.md
+    required_fields:
+    - id
+    - title
+    - overview
+    - roadmap_summary
+    - foundation_document_index
+    - srd_index
+    - config_format_index
+    - semantic_model_index
+    - use_case_index
+    - test_suite_index
+    - coverage_gaps
+  roadmap:
+    location: docs/road-map.md
+    required_fields:
+    - id
+    - title
+    - releases
+  srd:
+    location: docs/specs/software-requirements/srdNNN-short-name.md
+    required_fields:
+    - id
+    - title
+    - problem
+    - goals
+    - requirements
+    - non_goals
+    - acceptance_criteria
+  use_case:
+    location: docs/specs/use-cases/relNN.N-ucNNN-short-name.md
+    required_fields:
+    - id
+    - title
+    - summary
+    - actor
+    - trigger
+    - flow
+    - touchpoints
+    - success_criteria
+    - out_of_scope
+  test_suite:
+    location: docs/specs/test-suites/test-relNN.N-short-name.md
+    required_fields:
+    - id
+    - title
+    - release
+    - traces
+    - preconditions
+    - test_cases
+  semantic_model:
+    location: docs/specs/semantic-models/name.md
+    required_fields:
+    - id
+    - title
+    - purpose
+  config_format:
+    location: docs/specs/config-formats/name.md
+    required_fields:
+    - id
+    - title
+    - purpose
+  constitution:
+    location: docs/constitutions/name.md
+    required_fields:
+    - id
+    - title
+    - purpose
+  corpus_charter:
+    location: docs/corpus-charter.yaml
+    required_fields:
+    - id
+    - title
+    - checks
+  guide:
+    location: docs/guides/name.md
+    required_fields: []
+  engineering_guideline:
+    location: docs/engineering/engNN-short-name.md
+    required_fields:
+    - id
+    - title
+    - introduction
+    - sections
+    - references
