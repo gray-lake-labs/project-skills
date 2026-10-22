@@ -15,10 +15,11 @@ import (
 // notMarkdown are the files design.md D2 keeps out of Markdown, each because
 // a consumer outside this repository requires its format.
 var notMarkdown = []string{
-	"docs/external-pins.yaml",      // the parent's audit reads it by path
-	"docs/external-checkouts.yaml", // the parent's audit reads it by path
-	"docs/corpus-charter.yaml",     // the parent's audit executes it
-	"plugin/plugin.json",           // the Agent Plugins 1.0 standard
+	"docs/external-pins.yaml",        // the parent's audit reads it by path
+	"docs/external-checkouts.yaml",   // the parent's audit reads it by path
+	"docs/corpus-charter.yaml",       // the parent's audit executes it
+	"plugin/plugin.json",             // the Agent Plugins 1.0 standard
+	"internal/spectool/overlay.yaml", // tpm's document-type overlay; the parent's declaration reader requires YAML (srd040 R1.6)
 }
 
 // yamlOutsideAllowed returns the YAML and JSON files among paths that D2

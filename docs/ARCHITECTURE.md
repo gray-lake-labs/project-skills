@@ -535,9 +535,11 @@ The requirements are complete and release 00 (00.0 to 00.3), releases 01.0 to 01
 <!-- field: related_documents -->
 ## Related documents
 
-- docs/VISION.md
-- docs/SPECIFICATIONS.md
-- docs/road-map.md
-- docs/constitutions/design.md
-- docs/guides/process.md
-- docs/guides/ai-native-sdlc.md
+| doc | purpose |
+| --- | --- |
+| docs/VISION.md | What the process is for, and what it is not |
+| docs/SPECIFICATIONS.md | The corpus index: SRDs, use cases, test suites, gaps |
+| docs/road-map.md | The releases, their themes, and what each proves |
+| docs/constitutions/design.md | The format and rules every document here follows |
+| docs/guides/process.md | The process end to end, by role and plane |
+| docs/guides/ai-native-sdlc.md | The inner loop a change travels |
