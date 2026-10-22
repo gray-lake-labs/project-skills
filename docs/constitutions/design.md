@@ -452,7 +452,7 @@ An SRD whose release is not the next one holds its problem, goals, non-goals, an
     1. sections
     1. references
   - purpose:
-    - "Defines the engineering of the repository's system or subsystem, in the detail ARCHITECTURE's index has no room for": architecture descriptions of how its parts are structured, run, and deployed, and the practices its parts share. ARCHITECTURE names each engineering document in its related documents.
+    - "Defines the engineering of the repository's system or subsystem, in the detail ARCHITECTURE's index has no room for": architecture descriptions of how its parts are structured, run, and deployed, and the practices its parts share. ARCHITECTURE names each engineering document in its related documents. tpm's declaration overlay adds tagged subsections to this type, a section marker over a level-3 or level-4 heading inside a section; an untagged heading is refused (srd040 R1.6).
 - guide:
   - location: docs/guides/name.md
   - format: markdown

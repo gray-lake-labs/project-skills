@@ -53,8 +53,11 @@ func (Integration) Backlog() error {
 		return err
 	}
 	// An engineering document beside the hierarchy: the gate checks its
-	// format, and the folder README init wrote is not read as one (#181).
-	writeFileTo(filepath.Join(repo, "docs", "engineering", "eng01-scoring-runtime.md"), `---
+	// format through tpm's declaration overlay, a long section breaks into
+	// tagged subsections, and the folder README init wrote is not read as a
+	// document (#181, #184).
+	engineering := filepath.Join(repo, "docs", "engineering", "eng01-scoring-runtime.md")
+	writeFileTo(engineering, `---
 id: eng01-scoring-runtime
 title: How the scoring subsystem runs
 ---
@@ -67,7 +70,22 @@ How the scoring subsystem is structured, run, and deployed.
 <!-- section: processes -->
 ## Processes
 
-Ingest reads trajectories from the queue, and grading scores each one.
+The scoring subsystem runs as two processes.
+
+<!-- section: ingest -->
+### The ingest process
+
+Ingest reads trajectories from the queue.
+
+<!-- section: ingest-batching -->
+#### Batching
+
+Trajectories arrive in batches.
+
+<!-- section: grading -->
+### The grading process
+
+Grading scores each one.
 
 <!-- field: references -->
 ## References
@@ -97,8 +115,26 @@ Ingest reads trajectories from the queue, and grading scores each one.
 	if err != nil {
 		return err
 	}
+	// An untagged subheading is still refused: every heading carries its
+	// marker (#184).
+	untagged := filepath.Join(repo, "docs", "engineering", "eng02-untagged.md")
+	writeFileTo(untagged, "---\nid: eng02-untagged\ntitle: Untagged\n---\n\n<!-- field: introduction -->\n## Introduction\n\nIntro.\n\n<!-- section: one -->\n## One\n\nText.\n\n### Free subheading\n\nMore.\n\n<!-- field: references -->\n## References\n\n- docs/ARCHITECTURE.md\n")
+	if out, err := exec.Command("git", "-C", repo, "add", "-A").CombinedOutput(); err != nil {
+		return fmt.Errorf("git add: %w: %s", err, out)
+	}
 	out, err = run("backlog", "check")
-	// Nine hierarchy documents and the repository's SRD (#149).
+	c.expect(err != nil && strings.Contains(out, "heading-untagged"), "an untagged subheading passed the gate: %v: %s", err, out)
+	if err := os.Remove(untagged); err != nil {
+		return err
+	}
+	if out, err := exec.Command("git", "-C", repo, "rm", "-q", "--cached", untagged).CombinedOutput(); err != nil {
+		return fmt.Errorf("git rm: %w: %s", err, out)
+	}
+
+	out, err = run("backlog", "check")
+	// Nine hierarchy documents and the repository's SRD (#149); the
+	// engineering document is format-checked but is not a hierarchy
+	// document, so it does not join the count (#184).
 	c.expect(err == nil && strings.HasPrefix(out, "hierarchy gate: pass, 10 documents"), "check on a valid hierarchy: %v: %s", err, out)
 	after, err := tree(repo)
 	if err != nil {

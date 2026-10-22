@@ -10,6 +10,7 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/sha256"
+	_ "embed"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -17,11 +18,20 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
 )
+
+// Overlay is tpm's document-type overlay: declarations the tool merges
+// over the parent release's own, the overlay winning for the types it
+// names, so tpm extends the format as data and the parent stays untouched
+// (srd040).
+//
+//go:embed overlay.yaml
+var Overlay []byte
 
 // ReleaseURL is where the parent publishes each tag's binaries and source;
 // tests point it at a local server.
@@ -181,7 +191,7 @@ func gitQuiet(dir string, args ...string) error {
 // Binary is where the spec tool built from this Main lives
 // under a release's directory.
 func Binary(dir string) string {
-	sum := sha256.Sum256([]byte(Main))
+	sum := sha256.Sum256(append([]byte(Main), Overlay...))
 	return filepath.Join(dir, "spectool-built-"+hex.EncodeToString(sum[:6]))
 }
 
@@ -243,6 +253,7 @@ func writeSource(dir, releaseSource string) error {
 		}
 	}
 	main := strings.ReplaceAll(Main, "RELEASE_MODULE", module)
+	main = strings.Replace(main, `"OVERLAY_YAML"`, strconv.Quote(string(Overlay)), 1)
 	return os.WriteFile(filepath.Join(dir, "main.go"), []byte(main), 0o644)
 }
 
@@ -269,6 +280,16 @@ import (
 // so the tool reads them with the SRD declaration (design.md hierarchy).
 var hierarchyPath = regexp.MustCompile("(^|/)(themes|initiatives|epics|features|stories|objectives)/([a-z]+/)?(th|in|ep|ft|st|obj)[0-9]{3}-[a-z0-9-]+\\.(yaml|md)$")
 
+// overlayYAML is tpm's document-type overlay, spliced in when this program
+// is written: declarations merged over the release's own, the overlay
+// winning for the types it names. A declaration's location is not parsed
+// from YAML, so overlay types are routed by path below.
+var overlayYAML = "OVERLAY_YAML"
+
+// engineeringPath names an engineering document, which the overlay's
+// engineering_guideline serves: tpm adds tagged subsections to it.
+var engineeringPath = regexp.MustCompile("(^|/)docs/engineering/eng[0-9]{2}-[a-z0-9-]+\\.(yaml|md)$")
+
 // hierarchyTypes names the scope of each hierarchy directory.
 var hierarchyTypes = map[string]string{"themes": "theme", "initiatives": "initiative", "epics": "epic", "features": "feature", "stories": "story", "objectives": "objective"}
 
@@ -278,6 +299,10 @@ func declarationFor(declarations markdown.Declarations, path string, source bool
 	if m := hierarchyPath.FindStringSubmatch(path); m != nil {
 		d, ok := declarations["srd"]
 		return d, hierarchyTypes[m[2]], ok
+	}
+	if engineeringPath.MatchString(path) {
+		d, ok := declarations["engineering_guideline"]
+		return d, "engineering_guideline", ok
 	}
 	var d *markdown.Declaration
 	var ok bool
@@ -301,6 +326,13 @@ func main() {
 	declarations, err := markdown.Default()
 	if err != nil {
 		fail(err)
+	}
+	overlay, err := markdown.LoadDeclarations([]byte(overlayYAML))
+	if err != nil {
+		fail(fmt.Errorf("tpm's declaration overlay: %w", err))
+	}
+	for name, d := range overlay {
+		declarations[name] = d
 	}
 	out, err := exec.Command("git", "ls-files", "*.yaml", "*.md").Output()
 	if err != nil {

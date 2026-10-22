@@ -14,7 +14,7 @@ a deployment, or a practice such as how its tests or releases work.
 
 - Name: `engNN-short-name.md`, numbered in order and never reused.
 - Format: an engineering guideline in the pinned parent release's Markdown format, with the fields docs/constitutions/design.md lists for it: an introduction, one or more sections, and references.
-- Sections: each section is a level-2 heading with a `<!-- section: short-id -->` marker on the line above it. Break a long description into more sections; the parent format does not yet admit free subheadings inside one.
+- Sections: each section is a level-2 heading with a `<!-- section: short-id -->` marker on the line above it. A long section breaks into tagged subsections, the same marker over a `###` or `####` heading; a heading without its marker is refused.
 - Links: docs/ARCHITECTURE.md names each engineering document in its related documents, and a component or decision that needs more than a paragraph points to the one that describes it.
 - Changes go through an issue and the corpus gate, never a direct edit on main.
 

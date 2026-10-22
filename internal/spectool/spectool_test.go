@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"gopkg.in/yaml.v3"
 )
 
 func TestSpecToolSourceUsesThePinnedRelease(t *testing.T) {
@@ -99,5 +101,42 @@ func TestPinnedReadsThePin(t *testing.T) {
 	os.WriteFile(filepath.Join(dir, PinsFile), []byte("pins: {}\n"), 0o644)
 	if _, err := Pinned(dir); err == nil || !strings.Contains(err.Error(), "pins no release") {
 		t.Fatalf("an empty pin: %v", err)
+	}
+}
+
+// TestOverlayDeclaresTheSubsections holds tpm's declaration overlay to its
+// shape: it parses, its engineering_guideline keeps the parent's section
+// grammar, and it adds the tagged subsection nodes at levels 3 and 4
+// (srd040, GH-184). The tool splices it in as a quoted string, so Main
+// carries the placeholder, the merge, and the path route.
+func TestOverlayDeclaresTheSubsections(t *testing.T) {
+	var overlay struct {
+		DocumentTypes map[string]struct {
+			Markdown struct {
+				Nodes map[string]struct {
+					Tag    string `yaml:"tag"`
+					Level  int    `yaml:"level"`
+					Parent string `yaml:"parent"`
+				} `yaml:"nodes"`
+			} `yaml:"markdown"`
+		} `yaml:"document_types"`
+	}
+	if err := yaml.Unmarshal(Overlay, &overlay); err != nil {
+		t.Fatalf("overlay.yaml: %v", err)
+	}
+	nodes := overlay.DocumentTypes["engineering_guideline"].Markdown.Nodes
+	for name, want := range map[string]struct {
+		level  int
+		parent string
+	}{"section": {2, "document"}, "subsection": {3, "section"}, "subsubsection": {4, "subsection"}} {
+		n, ok := nodes[name]
+		if !ok || n.Tag != "section" || n.Level != want.level || n.Parent != want.parent {
+			t.Errorf("node %s = %+v, want tag section at level %d under %s", name, n, want.level, want.parent)
+		}
+	}
+	for _, want := range []string{`"OVERLAY_YAML"`, "LoadDeclarations", "engineeringPath", "docs/engineering/eng"} {
+		if !strings.Contains(Main, want) {
+			t.Errorf("Main lacks %q", want)
+		}
 	}
 }

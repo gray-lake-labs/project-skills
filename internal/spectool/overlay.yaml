@@ -1,0 +1,67 @@
+# tpm's document-type overlay: declarations merged over the pinned parent
+# release's own (markdown.LoadDeclarations), the overlay winning for the
+# types it names. The parent stays untouched; what tpm adds to the format
+# lives here as data (GH-183, GH-184). Location is routed by path in the
+# tool (declarationFor), not parsed from this file.
+document_types:
+  engineering_guideline:
+    location: docs/engineering/engNN-short-name.md
+    converts_from: docs/engineering/engNN-short-name.yaml
+    required_fields:
+    - id
+    - title
+    - introduction
+    - sections
+    - references
+    purpose: Defines repository-wide engineering practices shared by modules.
+    markdown:
+      frontmatter:
+        required: [id, title]
+        allowed: [id, title]
+        id_matches_filename: true
+      nodes:
+        document_field:
+          tag: field
+          level: 2
+          parent: document
+          heading: free
+          content: any
+          fields:
+          - introduction
+          - references
+        section:
+          tag: section
+          level: 2
+          parent: document
+          id_pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          heading: free
+          content: any
+          unique_id: true
+          yaml: {from: sections, records: list, id: id, title: title, content: content, derive_id: slug}
+        # tpm's addition: a long section breaks into tagged subsections,
+        # <!-- section: id --> over a ### or #### heading. Untagged
+        # headings stay refused, so every heading carries its marker.
+        subsection:
+          tag: section
+          level: 3
+          parent: section
+          id_pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          heading: free
+          content: any
+          yaml: {from: sections, records: list, id: id, title: title, content: content, derive_id: slug}
+        subsubsection:
+          tag: section
+          level: 4
+          parent: subsection
+          id_pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          heading: free
+          content: any
+          yaml: {from: sections, records: list, id: id, title: title, content: content, derive_id: slug}
+      fields:
+        introduction: {in: [document_field], shape: prose}
+        references: {in: [document_field], shape: list}
+      required_fields: [introduction, references]
+      required_nodes: {section: 1}
+      prose_containment:
+        keywords: [MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD, SHOULD NOT, RECOMMENDED, MAY, OPTIONAL, shall, shall not]
+        outside: [document_field, section, subsection, subsubsection]

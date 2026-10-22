@@ -47,6 +47,11 @@ fmt and specCheck index the corpus first, so a reference to another document ren
 
 A hierarchy document, thNNN, inNNN, epNNN, ftNNN, or stNNN-short-name under a themes, initiatives, epics, features, or stories directory, and an objective document, objNNN-short-name under an objectives directory, is read with the release's SRD declaration under the scope of its kind: theme, initiative, epic, feature, story, or objective (design.md schema).
 
+<!-- req: R1.6 -->
+### R1.6
+
+The tool validates with the release's declarations merged with tpm's embedded overlay, loaded through the release's own declaration reader, the overlay winning for the types it names; the release's library is unchanged. The overlay's engineering_guideline serves docs/engineering documents and adds tagged subsections, a section marker over a level-3 heading inside a section and a level-4 inside that; an untagged heading or a tag no declaration admits is refused as before, and a document without subsections formats as before.
+
 <!-- req: R2 -->
 ## R2 - Format gates in mage audit
 
@@ -77,7 +82,7 @@ A gate test fails when an implemented test suite's go_test names a package or te
 <!-- ac: AC1 -->
 ### AC1
 
-The spec tool is built once per pinned release and per version of its own source, converts a YAML objective and formats and checks the corpus at that release, and reads hierarchy and objective documents as SRDs.
+The spec tool is built once per pinned release and per version of its own source, converts a YAML objective and formats and checks the corpus at that release, reads hierarchy and objective documents as SRDs, and validates an engineering document with tagged subsections through tpm's overlay, round-tripping it unchanged and refusing an untagged subheading.
 
 <!-- field: traces -->
 #### Traces
@@ -87,6 +92,7 @@ The spec tool is built once per pinned release and per version of its own source
 - [R1.3](#r13)
 - [R1.4](#r14)
 - [R1.5](#r15)
+- [R1.6](#r16)
 
 <!-- ac: AC2 -->
 ### AC2
